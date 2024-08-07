@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "50278410943",
+    "project_id": "fir-compose-b1fc4",
+    "storage_bucket": "fir-compose-b1fc4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50278410943:android:367471c73ced28207cf40a",
+        "android_client_info": {
+          "package_name": "com.mleiva.firebase_compose"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYoIp-sFLTTyT1r12_g9JNV0flAqouVsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
