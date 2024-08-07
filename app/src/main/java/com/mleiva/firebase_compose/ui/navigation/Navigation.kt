@@ -29,7 +29,7 @@ fun Navigation(
     navController: NavHostController = rememberNavController()
 ) {
     var analytics: AnalyticsManager = AnalyticsManager(context)
-    val authManager: AuthManager = AuthManager()
+    val authManager: AuthManager = AuthManager(context)
 
     val user: FirebaseUser? = authManager.getCurrentUser()
 
