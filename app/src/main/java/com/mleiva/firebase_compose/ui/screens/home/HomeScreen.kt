@@ -1,5 +1,6 @@
 package com.mleiva.firebase_compose.ui.screens.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,7 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
@@ -30,7 +33,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,6 +47,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.mleiva.firebase_compose.R
 import com.mleiva.firebase_compose.ui.navigation.Routes
 import com.mleiva.firebase_compose.ui.screens.contacts.ContactsScreen
 import com.mleiva.firebase_compose.ui.screens.notes.NotesScreen
@@ -62,6 +68,8 @@ fun HomeScreen(
     analytics.logScreenView(screenName = Routes.Home.route)
     val navController = rememberNavController()
 
+    val user = authManager.getCurrentUser()
+
     var showDialog by remember { mutableStateOf(false) }
 
     val onLogoutConfirmed: () -> Unit = {
@@ -81,18 +89,29 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        if(user?.photoUrl != null) {
 
+                        } else {
+                            Image(
+                                painter = painterResource(R.drawable.profile),
+                                contentDescription = "Foto de perfil por defecto",
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                            )
+                        }
 
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
-                                text = "Bienvenidx",
+                                text = if(!user?.displayName.isNullOrEmpty()) "Hola ${user?.displayName}" else "Bienvenidx",
                                 fontSize = 20.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = "Usuario",
+                                text = if(!user?.email.isNullOrEmpty()) "${user?.email}" else "Anónimo",
                                 fontSize = 12.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis)

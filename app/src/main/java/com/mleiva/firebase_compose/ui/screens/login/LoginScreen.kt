@@ -1,6 +1,7 @@
 package com.mleiva.firebase_compose.ui.screens.login
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -119,7 +120,9 @@ fun LoginScreen(
         Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
             Button(
                 onClick = {
-
+                    scope.launch {
+                        emailPassSignIn(authManager, analytics, context, email, password, navigation)
+                    }
                 },
                 shape = RoundedCornerShape(50.dp),
                 modifier = Modifier
@@ -170,6 +173,27 @@ fun LoginScreen(
     }
 }
 
+private suspend fun emailPassSignIn(authManager: AuthManager, analytics: AnalyticsManager, context: Context, email: String, password: String, navigation: NavController) {
+    if(email.isNotEmpty() && password.isNotEmpty()) {
+        when (val result = authManager.signInWithEmailAndPassword(email, password)) {
+            is AuthRes.Success -> {
+                analytics.logButtonClicked("Click: Iniciar sesión correo & contraseña")
+                navigation.navigate(Routes.Home.route) {
+                    popUpTo(Routes.Login.route) {
+                        inclusive = true
+                    }
+                }
+            }
+
+            is AuthRes.Error -> {
+                analytics.logButtonClicked("Error SignUp: ${result.errorMessage}")
+                Toast.makeText(context, "Error SignUp: ${result.errorMessage}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    } else {
+        Toast.makeText(context, "Existen campos vacios", Toast.LENGTH_SHORT).show()
+    }
+}
 
 
 @Composable

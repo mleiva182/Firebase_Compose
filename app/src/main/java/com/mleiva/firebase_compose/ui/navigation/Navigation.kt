@@ -54,12 +54,14 @@ fun Navigation(
             }
             composable(Routes.SignUp.route) {
                 SignUpScreen(
+                    authManager = authManager,
                     analytics = analytics,
                     navigation = navController
                 )
             }
             composable(Routes.ForgotPassword.route) {
                 ForgotPasswordScreen(
+                    authmanager = authManager,
                     analytics = analytics,
                     navigation = navController
                 )

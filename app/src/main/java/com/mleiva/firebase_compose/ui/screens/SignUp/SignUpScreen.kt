@@ -1,5 +1,7 @@
 package com.mleiva.firebase_compose.ui.screens.SignUp
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,9 +34,13 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.mleiva.firebase_compose.ui.navigation.Routes
 import com.mleiva.firebase_compose.ui.theme.Purple40
 import com.mleiva.firebase_compose.utils.AnalyticsManager
+import com.mleiva.firebase_compose.utils.AuthManager
+import com.mleiva.firebase_compose.utils.AuthRes
+import kotlinx.coroutines.launch
 
 /***
  * Project: Firebase_Compose
@@ -42,7 +48,10 @@ import com.mleiva.firebase_compose.utils.AnalyticsManager
  * Creted by: Marcelo Leiva on 07-08-2024 at 11:47
  ***/
 @Composable
-fun SignUpScreen(analytics: AnalyticsManager, navigation: NavController) {
+fun SignUpScreen(
+    authManager: AuthManager,
+    analytics: AnalyticsManager,
+    navigation: NavController) {
     analytics.logScreenView(screenName = Routes.SignUp.route)
 
     val context = LocalContext.current
@@ -79,7 +88,9 @@ fun SignUpScreen(analytics: AnalyticsManager, navigation: NavController) {
         Box(modifier = Modifier.padding(40.dp, 0.dp, 40.dp, 0.dp)) {
             Button(
                 onClick = {
-
+                    scope.launch {
+                        signUp(context, analytics, authManager, email, password, navigation)
+                    }
                 },
                 shape = RoundedCornerShape(50.dp),
                 modifier = Modifier
@@ -103,5 +114,23 @@ fun SignUpScreen(analytics: AnalyticsManager, navigation: NavController) {
                 color = Purple40
             )
         )
+    }
+}
+
+private suspend fun signUp(context: Context, analytics: AnalyticsManager, authManager: AuthManager, email: String, password: String, navigation: NavController) {
+    if(email.isNotEmpty() && password.isNotEmpty()) {
+        when(val result = authManager.createUserWithEmailAndPassword(email, password)) {
+            is AuthRes.Success -> {
+                analytics.logButtonClicked(FirebaseAnalytics.Event.SIGN_UP)
+                Toast.makeText(context, "Registro exitoso", Toast.LENGTH_SHORT).show()
+                navigation.popBackStack()
+            }
+            is AuthRes.Error -> {
+                analytics.logButtonClicked("Error SignUp: ${result.errorMessage}")
+                Toast.makeText(context, "Error SignUp: ${result.errorMessage}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    } else {
+        Toast.makeText(context, "Existen campos vacios", Toast.LENGTH_SHORT).show()
     }
 }
