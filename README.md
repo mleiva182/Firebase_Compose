@@ -8,4 +8,4 @@
 
 * Screens with compose
 * Firebase Analytics
-* Firebase anonymous authentication
+* Firebase authentication by anonymous,email-password, google.
