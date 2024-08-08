@@ -1,5 +1,6 @@
 package com.mleiva.firebase_compose.ui.screens.home
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,6 +58,7 @@ import com.mleiva.firebase_compose.ui.screens.contacts.ContactsScreen
 import com.mleiva.firebase_compose.ui.screens.notes.NotesScreen
 import com.mleiva.firebase_compose.utils.AnalyticsManager
 import com.mleiva.firebase_compose.utils.AuthManager
+import com.mleiva.firebase_compose.utils.RealtimeManager
 
 /***
  * Project: Firebase_Compose
@@ -71,6 +73,8 @@ fun HomeScreen(
     navigation: NavController) {
     analytics.logScreenView(screenName = Routes.Home.route)
     val navController = rememberNavController()
+
+    val context = LocalContext.current
 
     val user = authManager.getCurrentUser()
 
@@ -155,7 +159,7 @@ fun HomeScreen(
                     showDialog = false
                 }, onDismiss = { showDialog = false })
             }
-            BottomNavGraph(navController = navController)
+            BottomNavGraph(navController = navController, context = context, authManager = authManager)
         }
     }
 }
@@ -222,10 +226,11 @@ fun RowScope.AddItem(screens: BottomNavScreen, currentDestination: NavDestinatio
 }
 
 @Composable
-fun BottomNavGraph(navController: NavHostController) {
+fun BottomNavGraph(navController: NavHostController, context: Context, authManager: AuthManager) {
+    val realtimeManager = RealtimeManager(context)
     NavHost(navController = navController, startDestination = BottomNavScreen.Contact.route) {
         composable(route = BottomNavScreen.Contact.route) {
-            ContactsScreen()
+            ContactsScreen(realtimeManager,authManager)
         }
         composable(route = BottomNavScreen.Note.route) {
             NotesScreen()
