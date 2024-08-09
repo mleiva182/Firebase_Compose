@@ -58,6 +58,7 @@ import com.mleiva.firebase_compose.ui.screens.contacts.ContactsScreen
 import com.mleiva.firebase_compose.ui.screens.notes.NotesScreen
 import com.mleiva.firebase_compose.utils.AnalyticsManager
 import com.mleiva.firebase_compose.utils.AuthManager
+import com.mleiva.firebase_compose.utils.FirestoreManager
 import com.mleiva.firebase_compose.utils.RealtimeManager
 
 /***
@@ -228,12 +229,13 @@ fun RowScope.AddItem(screens: BottomNavScreen, currentDestination: NavDestinatio
 @Composable
 fun BottomNavGraph(navController: NavHostController, context: Context, authManager: AuthManager) {
     val realtimeManager = RealtimeManager(context)
+    val firestore = FirestoreManager(context)
     NavHost(navController = navController, startDestination = BottomNavScreen.Contact.route) {
         composable(route = BottomNavScreen.Contact.route) {
             ContactsScreen(realtimeManager,authManager)
         }
         composable(route = BottomNavScreen.Note.route) {
-            NotesScreen()
+            NotesScreen(firestore)
         }
     }
 }
