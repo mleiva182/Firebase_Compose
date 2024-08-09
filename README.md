@@ -11,3 +11,4 @@
 * Firebase authentication by anonymous,email-password, google.
 * Firebase Realtime Database
 * Firebase Cloud Firestore
+* Firebase Cloud Storage

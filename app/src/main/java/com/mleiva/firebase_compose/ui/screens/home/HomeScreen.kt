@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.ExitToApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -52,14 +54,19 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.crashlytics.ktx.setCustomKeys
 import com.mleiva.firebase_compose.R
 import com.mleiva.firebase_compose.ui.navigation.Routes
 import com.mleiva.firebase_compose.ui.screens.contacts.ContactsScreen
 import com.mleiva.firebase_compose.ui.screens.notes.NotesScreen
+import com.mleiva.firebase_compose.ui.screens.storage.CloudStorageScreen
 import com.mleiva.firebase_compose.utils.AnalyticsManager
 import com.mleiva.firebase_compose.utils.AuthManager
+import com.mleiva.firebase_compose.utils.CloudStorageManager
 import com.mleiva.firebase_compose.utils.FirestoreManager
 import com.mleiva.firebase_compose.utils.RealtimeManager
+import java.lang.RuntimeException
 
 /***
  * Project: Firebase_Compose
@@ -139,6 +146,26 @@ fun HomeScreen(
                 },
                 colors = TopAppBarDefaults.smallTopAppBarColors(),
                 actions = {
+                    /*IconButton(
+                        onClick = {
+                            val crashlytics = FirebaseCrashlytics.getInstance()
+                            crashlytics.setCustomKey("pruebaClaveHome", "Valor a enviar")
+                            crashlytics.log("Mensaje log desde HomeScreen")
+                            crashlytics.setUserId(user?.uid ?: "No Id Found")
+                            crashlytics.setCustomKeys {
+                                key("str", "hello")
+                                key("bool", true)
+                                key("int", 5)
+                                key("long", 5.8)
+                                key("float", 1.0f)
+                                key("double", 1.0)
+                            }
+
+                            throw RuntimeException("Error forzado desde HomeScreen")
+                        }
+                    ) {
+                        Icon(Icons.Default.Warning , contentDescription = "Forzar Error")
+                    }*/
                     IconButton(
                         onClick = {
                             showDialog = true
@@ -192,7 +219,8 @@ fun LogoutDialog(onConfirmLogout: () -> Unit, onDismiss: () -> Unit) {
 fun BottomBar(navController: NavHostController) {
     val screens = listOf(
         BottomNavScreen.Contact,
-        BottomNavScreen.Note
+        BottomNavScreen.Note,
+        BottomNavScreen.Photos
     )
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -230,12 +258,16 @@ fun RowScope.AddItem(screens: BottomNavScreen, currentDestination: NavDestinatio
 fun BottomNavGraph(navController: NavHostController, context: Context, authManager: AuthManager) {
     val realtimeManager = RealtimeManager(context)
     val firestore = FirestoreManager(context)
+    val storage = CloudStorageManager(context)
     NavHost(navController = navController, startDestination = BottomNavScreen.Contact.route) {
         composable(route = BottomNavScreen.Contact.route) {
             ContactsScreen(realtimeManager,authManager)
         }
         composable(route = BottomNavScreen.Note.route) {
             NotesScreen(firestore)
+        }
+        composable(route = BottomNavScreen.Photos.route) {
+            CloudStorageScreen(storage = storage)
         }
     }
 }
@@ -250,5 +282,10 @@ sealed class BottomNavScreen(val route: String, val title: String, val icon: Ima
         route = "notes",
         title = "Notas",
         icon = Icons.Default.List
+    )
+    object Photos : BottomNavScreen(
+        route = "photos",
+        title = "Photos",
+        icon = Icons.Default.Face
     )
 }
