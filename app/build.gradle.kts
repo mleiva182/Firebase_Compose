@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.config)
+    implementation(libs.firebase.messaging)
     implementation(libs.auth.play.services)
     implementation(libs.coil)
 

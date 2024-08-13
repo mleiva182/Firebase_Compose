@@ -13,3 +13,4 @@
 * Firebase Cloud Firestore
 * Firebase Cloud Storage
 * Firebase Remote Config
+* Firebase Cloud Messaging
