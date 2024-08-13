@@ -1,6 +1,7 @@
 package com.mleiva.firebase_compose.ui.screens.home
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -56,6 +58,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.crashlytics.ktx.setCustomKeys
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
+import com.google.firebase.remoteconfig.ktx.get
+import com.google.firebase.remoteconfig.ktx.remoteConfig
 import com.mleiva.firebase_compose.R
 import com.mleiva.firebase_compose.ui.navigation.Routes
 import com.mleiva.firebase_compose.ui.screens.contacts.ContactsScreen
@@ -73,12 +83,23 @@ import java.lang.RuntimeException
  * From: com.mleiva.firebase_compose.screens.home
  * Creted by: Marcelo Leiva on 07-08-2024 at 10:17
  ***/
+
+private lateinit var mFirebaseRemoteConfig: FirebaseRemoteConfig
+private var welcomeMessage by mutableStateOf("Bienvenidx")
+private var isButtonVisible by mutableStateOf(true)
+
+val WELCOME_MESSAGE_KEY = "welcome_message"
+val IS_BUTTON_VISIBLE_KEY = "is_button_visible"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     analytics: AnalyticsManager,
     authManager: AuthManager,
     navigation: NavController) {
+
+    initRemoteConfig()
+
     analytics.logScreenView(screenName = Routes.Home.route)
     val navController = rememberNavController()
 
@@ -131,7 +152,7 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
-                                text = if(!user?.displayName.isNullOrEmpty()) "Hola ${user?.displayName}" else "Bienvenidx",
+                                text = if(!user?.displayName.isNullOrEmpty()) "Hola ${user?.displayName}" else welcomeMessage,
                                 fontSize = 20.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -146,7 +167,7 @@ fun HomeScreen(
                 },
                 colors = TopAppBarDefaults.smallTopAppBarColors(),
                 actions = {
-                    /*IconButton(
+                    IconButton(
                         onClick = {
                             val crashlytics = FirebaseCrashlytics.getInstance()
                             crashlytics.setCustomKey("pruebaClaveHome", "Valor a enviar")
@@ -160,12 +181,12 @@ fun HomeScreen(
                                 key("float", 1.0f)
                                 key("double", 1.0)
                             }
-
                             throw RuntimeException("Error forzado desde HomeScreen")
-                        }
+                        },
+                        modifier = Modifier.alpha(if (isButtonVisible) 1f else 0f)
                     ) {
                         Icon(Icons.Default.Warning , contentDescription = "Forzar Error")
-                    }*/
+                    }
                     IconButton(
                         onClick = {
                             showDialog = true
@@ -288,4 +309,45 @@ sealed class BottomNavScreen(val route: String, val title: String, val icon: Ima
         title = "Photos",
         icon = Icons.Default.Face
     )
+}
+
+fun initRemoteConfig() {
+    mFirebaseRemoteConfig = Firebase.remoteConfig
+    val configSettings: FirebaseRemoteConfigSettings = FirebaseRemoteConfigSettings.Builder()
+        .setMinimumFetchIntervalInSeconds(3600)
+        .build()
+    mFirebaseRemoteConfig.setConfigSettingsAsync(configSettings)
+    mFirebaseRemoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+
+    mFirebaseRemoteConfig.addOnConfigUpdateListener(object: ConfigUpdateListener {
+        override fun onUpdate(configUpdate: ConfigUpdate) {
+            Log.d("HomeScreen", "Updated keys: " + configUpdate.updatedKeys)
+            if(configUpdate.updatedKeys.contains(IS_BUTTON_VISIBLE_KEY) || configUpdate.updatedKeys.contains(WELCOME_MESSAGE_KEY)) {
+                mFirebaseRemoteConfig.activate().addOnCompleteListener {
+                    displayWelcomeMessage()
+                }
+            }
+        }
+        override fun onError(error: FirebaseRemoteConfigException) {
+        }
+    })
+
+    fetchWelcome()
+}
+
+fun fetchWelcome() {
+    mFirebaseRemoteConfig.fetchAndActivate()
+        .addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val updated = task.result
+                println("Parámetros actualizados: $updated")
+            } else {
+                println("Fetch failed")
+            }
+        }
+}
+
+fun displayWelcomeMessage() {
+    welcomeMessage = mFirebaseRemoteConfig[WELCOME_MESSAGE_KEY].asString()
+    isButtonVisible = mFirebaseRemoteConfig[IS_BUTTON_VISIBLE_KEY].asBoolean()
 }
